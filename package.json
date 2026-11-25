@@ -1,0 +1,14 @@
+{
+  "name": "market-board",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Single dashboard showing SGX Nifty, NSE NIFTY 50 and India VIX side by side",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "^1.58.2"
+  }
+}

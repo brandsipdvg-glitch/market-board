@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: market-board
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/latest
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: POLL_MS
+        value: "500"
