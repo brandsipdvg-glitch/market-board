@@ -140,6 +140,16 @@ async function openSite(site) {
   });
   const page = await context.newPage();
 
+  // Keep resource use low enough for small free cloud instances. Ads, images,
+  // fonts and trackers are noise for quote extraction and consume most of the RAM.
+  await page.route('**/*', (route) => {
+    const req = route.request();
+    const url = req.url();
+    if (['image', 'media', 'font'].includes(req.resourceType())) return route.abort();
+    if (/doubleclick|googlesyndication|googletagmanager|google-analytics|primis|adnxs|pubmatic|openx|casalemedia|adtrafficquality|turnstile|recaptcha|scorecardresearch|amazon-adsystem/i.test(url)) return route.abort();
+    return route.continue();
+  });
+
   // The source page calls this as soon as its quote changes.
   await page.exposeBinding('__marketBoardChanged', () => { readSite(site); });
 
@@ -186,6 +196,9 @@ async function boot() {
       headless: true,
       args: [
         '--disable-http2',
+        '--no-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
         '--disable-background-timer-throttling',
         '--disable-renderer-backgrounding',
         '--disable-backgrounding-occluded-windows',

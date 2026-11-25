@@ -51,11 +51,21 @@ If `cloudflared` is missing, install it first:
 brew install cloudflare/cloudflare/cloudflared
 ```
 
-## Deploy to a cloud host (optional)
+## Deploy to Koyeb (Mac can be off)
 
-The repo includes a `Dockerfile` and `render.yaml` blueprint if you prefer a permanent URL that does not depend on your Mac being on. On Render, choose **New → Blueprint**, select this repository, and click **Apply**.
+This is the easiest way to get a public URL that works without your Mac. The repo includes a `Dockerfile`, and the app is tuned for a small free instance (ads, images and fonts in source pages are blocked to keep memory low).
 
-Note: the free plan may sleep after inactivity, and NSE / Moneycontrol sometimes block cloud IPs. If a feed shows an error, restart the service or use a paid plan with a dedicated IP.
+1. Sign up at https://app.koyeb.com/auth/signup with GitHub.
+2. Create a new Service → **Deploy from GitHub** → select `brandsipdvg-glitch/market-board`.
+3. Builder: **Dockerfile** (detected automatically). Instance: **Free**. Port: **10000**.
+4. Add env vars `PORT=10000` and `POLL_MS=500` (the Dockerfile sets these already).
+5. Deploy, then open the generated `https://....koyeb.app` URL on your phone.
+
+If a source blocks Koyeb's cloud IP, restart the service or use a host with a dedicated IP.
+
+## Deploy to Render (alternative)
+
+The repo also includes a `render.yaml` blueprint. On Render, choose **New → Blueprint**, select the repository, and click **Apply**. The free plan may sleep after inactivity.
 
 ## Notes
 
