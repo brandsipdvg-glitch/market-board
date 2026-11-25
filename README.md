@@ -28,16 +28,32 @@ The dashboard cannot change a value before the source website changes it — the
 - `POLL_MS` — default poll interval in milliseconds (default `500`; minimum `250`)
 - `CHROME_PATH` — path to a Chromium/Chrome executable if auto-detection fails
 
-## Deploy to Render (public URL for mobile)
+## View on mobile (no account needed)
 
-The repo includes a `Dockerfile` and `render.yaml` blueprint.
+This dashboard needs a running browser on the machine that reads the three sites, so the simplest working method is a Cloudflare tunnel from your Mac.
 
-1. Go to https://dashboard.render.com and sign in.
-2. Choose **New → Blueprint**.
-3. Select this GitHub repository. Render reads `render.yaml` and creates the `market-board` web service.
-4. Click **Apply**. Your public URL will be `https://market-board.onrender.com`.
+```bash
+./start-mobile.sh
+```
 
-The free plan may sleep after inactivity; the first open after sleep can take a few seconds. Source sites may also rate-limit cloud IPs — if a feed shows an error, restart the service or use a paid plan with a dedicated IP.
+The script starts the dashboard (if it is not already running) and then prints a public `https://....trycloudflare.com` URL. Open that URL on your phone.
+
+Important:
+- The Mac must stay awake and online while you view the dashboard.
+- A quick-tunnel URL is temporary. Every time you restart the script you get a new URL, so send the new one to your phone.
+- Press `Ctrl+C` in the terminal to stop the tunnel.
+
+If `cloudflared` is missing, install it first:
+
+```bash
+brew install cloudflare/cloudflare/cloudflared
+```
+
+## Deploy to a cloud host (optional)
+
+The repo includes a `Dockerfile` and `render.yaml` blueprint if you prefer a permanent URL that does not depend on your Mac being on. On Render, choose **New → Blueprint**, select this repository, and click **Apply**.
+
+Note: the free plan may sleep after inactivity, and NSE / Moneycontrol sometimes block cloud IPs. If a feed shows an error, restart the service or use a paid plan with a dedicated IP.
 
 ## Notes
 
