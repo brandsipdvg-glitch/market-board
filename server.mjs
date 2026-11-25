@@ -227,6 +227,30 @@ function broadcast(event = 'update') {
   }
 }
 
+// Small heartbeat keeps the "last sync" indicator fresh without re-rendering
+// every card on every 0.5s check. Full updates are sent only when data changes.
+function heartbeat() {
+  const payload = 'event: heartbeat\ndata: ' + JSON.stringify({
+    ts: state.ts || Date.now(),
+    pollMs,
+    updatedAt: Object.fromEntries(SITES.map((s) => [s.id, state.sites[s.id]?.updatedAt || 0])),
+  }) + '\n\n';
+  for (const res of clients) {
+    try {
+      res.write(payload);
+    } catch {
+      clients.delete(res);
+    }
+  }
+}
+
+function signature(entry) {
+  return [
+    entry.value, entry.change, entry.changePercent, entry.direction,
+    entry.error, entry.sourceTime, JSON.stringify(entry.stats || []),
+  ].join('|');
+}
+
 async function readSite(site) {
   if (reading.has(site.id)) return;
   reading.add(site.id);
@@ -269,7 +293,7 @@ async function readSite(site) {
     }
     entry.spark = h.slice();
     state.ts = Date.now();
-    broadcast('update');
+    if (!prev || signature(prev) !== signature(entry)) broadcast('update');
   } catch (err) {
     const prev = state.sites[site.id];
     const p = pages[site.id];
@@ -282,14 +306,15 @@ async function readSite(site) {
         p.fails = 0;
       }
     }
+    const message = String(err?.message || err);
     state.sites[site.id] = {
       ...(prev || { id: site.id, name: site.name, host: site.host, url: site.url }),
-      error: String(err?.message || err),
-      updatedAt: prev?.updatedAt || Date.now(),
+      error: message,
+      updatedAt: Date.now(),
       spark: history[site.id].slice(),
     };
     state.ts = Date.now();
-    broadcast('update');
+    if (!prev || prev.error !== message) broadcast('update');
   } finally {
     reading.delete(site.id);
   }
@@ -395,19 +420,32 @@ const server = http.createServer(async (req, res) => {
   await serveStatic(req, res, url.pathname);
 });
 
+let heartbeatTimer = null;
+
 server.listen(PORT, () => {
-  console.log('Market Board running at http://localhost:' + PORT + '  (safety poll every ' + pollMs / 1000 + 's; live changes pushed instantly)');
+  console.log('Market Board running at http://localhost:' + PORT + '  (auto-refresh every ' + pollMs / 1000 + 's; source changes pushed instantly)');
   boot().then(() => {
     poll();
     schedulePoll();
   });
+  heartbeatTimer = setInterval(heartbeat, 1000);
 });
 
+let shuttingDown = false;
 for (const sig of ['SIGINT', 'SIGTERM']) {
-  process.on(sig, async () => {
+  process.on(sig, () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    clearInterval(heartbeatTimer);
     if (timer) clearInterval(timer);
     for (const p of Object.values(pages)) clearInterval(p.keepAlive);
-    try { await browser?.close(); } catch {}
-    server.close(() => process.exit(0));
+    for (const res of clients) res.end();
+    server.close();
+    // A stuck browser close must never leave a zombie process behind.
+    setTimeout(() => process.exit(0), 2000).unref();
+    Promise.race([
+      browser?.close() || Promise.resolve(),
+      new Promise((resolve) => setTimeout(resolve, 1500)),
+    ]).then(() => process.exit(0)).catch(() => process.exit(0));
   });
 }

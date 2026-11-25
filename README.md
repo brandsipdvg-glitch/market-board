@@ -22,6 +22,8 @@ Some source sites pause their own feed when a visitor is idle — SGX Nifty stop
 
 Use the **Auto refresh** control to change the safety poll (0.5s, 2s, 5s, 15s) or turn it off. **Refresh now** forces an immediate read of all three sources.
 
+To keep the screen smooth, full card data is sent only when a value actually changes. A tiny heartbeat every second keeps the "last sync" indicator current without redrawing the whole dashboard, so there is no DOM churn or lag.
+
 The dashboard cannot change a value before the source website changes it — the source site's own update cadence is the limiting factor. Outside market hours values are naturally static.
 
 ## Configuration

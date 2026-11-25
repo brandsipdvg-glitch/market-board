@@ -232,6 +232,16 @@ stream.onerror = () => { streamOpen = false; updateMeta(); };
 stream.addEventListener('ready', (e) => applyState(JSON.parse(e.data)));
 stream.addEventListener('update', (e) => applyState(JSON.parse(e.data)));
 stream.addEventListener('interval', (e) => applyState(JSON.parse(e.data)));
+stream.addEventListener('heartbeat', (e) => {
+  const beat = JSON.parse(e.data);
+  if (!latest) return;
+  latest.ts = beat.ts;
+  latest.pollMs = beat.pollMs;
+  for (const [id, ts] of Object.entries(beat.updatedAt || {})) {
+    if (latest.sites?.[id]) latest.sites[id].updatedAt = ts;
+  }
+  updateMeta();
+});
 
 fetch('/api/latest')
   .then((r) => r.json())
