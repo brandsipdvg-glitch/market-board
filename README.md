@@ -18,6 +18,8 @@ Open **http://localhost:3000**.
 
 NSE and Moneycontrol block their pages from being embedded in an iframe, so the dashboard does not rely on iframes. `server.mjs` keeps one headless browser page open per source. A change detector watches each quote element in the source page; the moment that element changes, Node reads the new value and pushes it to the dashboard over Server-Sent Events. A 0.5s poll runs only as a safety net in case a site updates in a way the detector misses.
 
+Some source sites pause their own feed when a visitor is idle — SGX Nifty stops updating after 10 minutes without mouse/keyboard activity. The backend sends each page a harmless activity signal every 30 seconds so the source keeps refreshing itself and the dashboard never freezes on an old value.
+
 Use the **Auto refresh** control to change the safety poll (0.5s, 2s, 5s, 15s) or turn it off. **Refresh now** forces an immediate read of all three sources.
 
 The dashboard cannot change a value before the source website changes it — the source site's own update cadence is the limiting factor. Outside market hours values are naturally static.

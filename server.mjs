@@ -166,7 +166,17 @@ async function openSite(site) {
     window.__marketBoardObserver = observer;
   }, site.watch);
 
-  pages[site.id] = { page, context, fails: 0 };
+  // Several sources pause their own live feed when a visitor is idle (SGX Nifty
+  // stops after 10 minutes with no input). Keep a harmless activity signal going
+  // so the source page refreshes itself, then our observer pushes the change.
+  const keepAlive = setInterval(() => {
+    page.evaluate(() => {
+      window.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }));
+      window.dispatchEvent(new Event('scroll'));
+    }).catch(() => {});
+  }, 30000);
+
+  pages[site.id] = { page, context, fails: 0, keepAlive };
 }
 
 async function boot() {
@@ -253,6 +263,7 @@ async function readSite(site) {
     if (p) {
       p.fails += 1;
       if (p.fails >= 3) {
+        clearInterval(p.keepAlive);
         try { await p.context.close(); } catch {}
         delete pages[site.id];
         p.fails = 0;
@@ -382,6 +393,7 @@ server.listen(PORT, () => {
 for (const sig of ['SIGINT', 'SIGTERM']) {
   process.on(sig, async () => {
     if (timer) clearInterval(timer);
+    for (const p of Object.values(pages)) clearInterval(p.keepAlive);
     try { await browser?.close(); } catch {}
     server.close(() => process.exit(0));
   });
