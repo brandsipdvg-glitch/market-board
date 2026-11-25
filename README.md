@@ -1,5 +1,7 @@
 # Market Board
 
+[![Deploy to Koyeb](https://www.koyeb.com/static/images/deploy/button.svg)](https://app.koyeb.com/deploy?type=git&builder=dockerfile&repository=github.com/brandsipdvg-glitch/market-board&branch=main&name=market-board&instance_type=free&ports=10000%3Bhttp%3B%2F&env%5BPORT%5D=10000&env%5BPOLL_MS%5D=500)
+
 A single live dashboard showing the current values from three sites together:
 
 - **SGX Nifty** — https://sgxnifty.org/?shem=aimgspe
@@ -55,13 +57,15 @@ brew install cloudflare/cloudflare/cloudflared
 
 ## Deploy to Koyeb (Mac can be off)
 
-This is the easiest way to get a public URL that works without your Mac. The repo includes a `Dockerfile`, and the app is tuned for a small free instance (ads, images and fonts in source pages are blocked to keep memory low).
+This is the easiest way to get a public URL that works without your Mac. Use the **Deploy to Koyeb** button at the top of this README — it is pre-filled with the repository, Dockerfile, free instance, port `10000` and the `PORT` / `POLL_MS` environment variables.
 
-1. Sign up at https://app.koyeb.com/auth/signup with GitHub.
-2. Create a new Service → **Deploy from GitHub** → select `brandsipdvg-glitch/market-board`.
-3. Builder: **Dockerfile** (detected automatically). Instance: **Free**. Port: **10000**.
-4. Add env vars `PORT=10000` and `POLL_MS=500` (the Dockerfile sets these already).
-5. Deploy, then open the generated `https://....koyeb.app` URL on your phone.
+1. Click the button and sign in to Koyeb with GitHub (one-time signup).
+2. Review the pre-filled settings and click **Deploy**.
+3. Wait for the build (~2–5 minutes), then open the generated `https://....koyeb.app` URL on your phone.
+
+To deploy manually instead: create a Service → **Deploy from GitHub** → select `brandsipdvg-glitch/market-board`, use the **Dockerfile** builder, **Free** instance and port **10000**.
+
+The app is tuned for a small free instance: ads, images and fonts in source pages are blocked to keep memory low.
 
 If a source blocks Koyeb's cloud IP, restart the service or use a host with a dedicated IP.
 
